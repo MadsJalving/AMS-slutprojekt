@@ -36,11 +36,37 @@ int main()
 
   initReciever();
 
-  while (1)
+  motorSetup();
+
+  while(1)
   { 
     radio.read(buffer, sizeof(buffer));
 
-    
+    switch (buffer)
+    {
+      case 'w':
+        // forhøj fart-variabel
+        break;
+
+      case 'a':
+        // vinkel mod venstre
+        break;
+
+      case 's':
+        // sænk fart-variabel
+        break;
+
+      case 'd':
+        // vinkel mod højre
+        break;
+
+      case 'x':
+        // Her skal den stoppe
+        break;
+        
+      default:
+        break;
+    }
   }
   return 0;
 }
@@ -53,3 +79,7 @@ void initReciever()
   radio.startListening();              //This sets the module as reciever
 }
 
+void motorAdjust(byte speed)
+{
+
+}

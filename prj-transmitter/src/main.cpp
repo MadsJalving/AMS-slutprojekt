@@ -23,7 +23,7 @@ RF24 radio(PB1, PB2);
 void initTransmitter();
 
 const byte address[6] = "00001";
-void *buffer = malloc(sizeof(char));
+void *buffer = malloc(sizeof(String));
 
 int main()
 {
@@ -33,12 +33,14 @@ int main()
 
     initTransmitter();
 
+    byte speed;
+    int angle;
+
+    char newBuf;
+
     while(1)
     {
-        char newBuf = Serial.read();
-        buffer = &newBuf;
-
-        radio.write(&buffer, sizeof(buffer));
+        newBuf = Serial.read();
 
         buffer = NULL;
     
@@ -54,3 +56,7 @@ void initTransmitter()
     radio.stopListening();              //This sets the module as transmitter 
 }
 
+void sendString(byte speed, int angle)
+{
+
+}
