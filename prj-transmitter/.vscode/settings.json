@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "arduino.h": "c",
+        "rf24.h": "c",
+        "io.h": "c",
+        "iom328p.h": "c",
+        "gpio.h": "c",
+        "includes.h": "c"
+    }
+}
