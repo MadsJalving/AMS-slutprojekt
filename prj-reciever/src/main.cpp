@@ -7,6 +7,8 @@
 // Change History:
 //      - 26/04/2023
 //          Oprettelse og indledende redigeringer
+//      - 02/05/2023
+//          Oprettelse af ny reciever kode, som modtager input fra transmitter.
 //==================================
 
 #include <nRF24L01.h>
@@ -23,63 +25,54 @@
 
 RF24 radio(PB1, PB2);
 
-void initReciever();
+void initReceiver();
 
 const byte address[6] = "00001";
-void *buffer = malloc(sizeof(char));
+char buffer;
 
 int main()
 {
-  Serial.begin(115200);
+    Serial.begin(115200);
 
-  Serial.write("Hello from Reciever\n");
+    Serial.write("Hello from Receiver\n");
 
-  initReciever();
+    initReceiver();
 
-  motorSetup();
+    while(1)
+    { 
+        if (radio.available()) {
+            radio.read(&buffer, sizeof(buffer));
 
-  while(1)
-  { 
-    radio.read(buffer, sizeof(buffer));
+            switch (buffer)
+            {
+              case 'w':
+                Serial.println("Key W is pressed");
+                break;
 
-    switch (buffer)
-    {
-      case 'w':
-        // forhøj fart-variabel
-        break;
+              case 'a':
+                Serial.println("Key A is pressed");
+                break;
 
-      case 'a':
-        // vinkel mod venstre
-        break;
+              case 's':
+                Serial.println("Key S is pressed");
+                break;
 
-      case 's':
-        // sænk fart-variabel
-        break;
-
-      case 'd':
-        // vinkel mod højre
-        break;
-
-      case 'x':
-        // Her skal den stoppe
-        break;
-        
-      default:
-        break;
+              case 'd':
+                Serial.println("Key D is pressed");
+                break;
+              
+              default:
+                break;
+            }
+        }
     }
-  }
-  return 0;
+    return 0;
 }
 
-void initReciever()
+void initReceiver()
 {
-  radio.begin(); 
-  radio.openReadingPipe(0, address);   //Setting the address at which we will receive the data 
-  radio.setPALevel(RF24_PA_MIN);       //You can set this as minimum or maximum depending on the distance between the transmitter and receiver. 
-  radio.startListening();              //This sets the module as reciever
-}
-
-void motorAdjust(byte speed)
-{
-
+    radio.begin(); 
+    radio.openReadingPipe(0, address); //Setting the address at which we will receive the data 
+    radio.setPALevel(RF24_PA_MIN);     //You can set this as minimum or maximum depending on the distance between the transmitter and receiver. 
+    radio.startListening();            //This sets the module as receiver
 }
