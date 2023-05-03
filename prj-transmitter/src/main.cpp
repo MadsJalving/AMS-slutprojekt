@@ -29,37 +29,44 @@ char buffer;
 
 void sendString(char key)
 {
-  static char prevKey = '\0'; // keep track of the previously sent key
-  char buf[2] = {key, '\0'};  // create a string with the current key
+    static char prevKey = '\0'; // keep track of the previously sent key
+    char buf[2] = {key, '\0'};  // create a string with the current key
 
-  // check if both A and D or both W and S are pressed simultaneously
-  if ((prevKey == 'a' && key == 'd') || (prevKey == 'd' && key == 'a') ||
+    // check if both A and D or both W and S are pressed simultaneously
+    if ((prevKey == 'a' && key == 'd') || (prevKey == 'd' && key == 'a') ||
       (prevKey == 'w' && key == 's') || (prevKey == 's' && key == 'w'))
-  {
-    // send the previous key instead of the current one
-    buf[0] = prevKey;
-  }
+    {
+        // send the previous key instead of the current one
+        buf[0] = prevKey;
+    }
   
-  radio.write(buf, sizeof(buf)); // send the key over radio
-  prevKey = buf[0];              // update the previous key
+    radio.write(buf, sizeof(buf)); // send the key over radio
+    prevKey = buf[0];              // update the previous key
 }
 
 int main()
 {
-    Serial.begin(115200);
+    init();
+    Serial.begin(9600);
 
-    Serial.write("Hello from Transmitter\n");
+    while(!Serial)
+    {}
+
+    Serial.print(F("Hello from transmitter\n"));
 
     initTransmitter();
 
-    while (1)
+    for(;;)
     {
-        if (Serial.available())
+        if (Serial.available() > 0)
         {
             char key = Serial.read();
             if (key == 'w' || key == 'a' || key == 's' || key == 'd')
             {
-            sendString(key);
+                sendString(key);
+                Serial.print("Send key: ");
+                Serial.print(key);
+                Serial.print('\n');
             }
         }
     }
@@ -73,3 +80,5 @@ void initTransmitter()
     radio.setPALevel(RF24_PA_MIN);    //You can set this as minimum or maximum depending on the distance between the transmitter and receiver. 
     radio.stopListening();           //This sets the module as transmitter 
 }
+
+

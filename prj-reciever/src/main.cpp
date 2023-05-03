@@ -32,7 +32,11 @@ char buffer;
 
 int main()
 {
-    Serial.begin(115200);
+    init();
+    Serial.begin(9600);
+
+    while(!Serial)
+    {}
 
     Serial.write("Hello from Receiver\n");
 
