@@ -18,41 +18,42 @@
 #include <Arduino.h>
 #include <string.h> 
 #include <Servo.h>
+#include <printf.h>
+#include <string.h>
 
 #include <util/delay.h>
 
 #include "motorControl.hpp"
 
-RF24 radio(PB1, PB2);
+RF24 radio(7, 8);
 
 void initReceiver();
+void getData();
+void showData();
 
-const byte pipe[6] = "00001";
-char buffer;
+char buffer[32] = "";
+bool newData = false;
+const byte thisSlaveAddress[6] = "00002";
 
 int main()
 {
     init();
     Serial.begin(9600);
-
-    SPI.begin();
     
     while(!Serial)
     {}
+    printf_begin();
 
     Serial.print(F("Hello from Receiver\n"));
 
     initReceiver();
+    radio.printPrettyDetails();
 
-    radio.printDetails();
-
-    while(1)
-    { 
-        if (radio.available()) {
-            radio.read(&buffer, sizeof(buffer));
-            
-            Serial.print(buffer);
-            Serial.print("\n");
+    for(;;)
+    {
+        getData();
+        showData();
+        // if (radio.available()) {
 
             // switch (buffer)
             // {
@@ -75,19 +76,40 @@ int main()
             //     default:
             //         break;
             // }
-        }
+        // }
     }
     return 0;
 }
 
 void initReceiver()
 {
-    if(!radio.begin())
-    {
-        Serial.print(F("    Radio hardware not responding!\n"));
-        while(1){}
-    } 
-    radio.openReadingPipe(0, pipe); //Setting the address at which we will receive the data 
+    // if(!radio.begin())
+    // {
+    //     Serial.print(F("    Radio hardware not responding!\n"));
+    //     while(1){}
+    // } 
+    radio.begin();
+    radio.openReadingPipe(0, thisSlaveAddress); //Setting the address at which we will receive the data 
     radio.setPALevel(RF24_PA_MIN);     //You can set this as minimum or maximum depending on the distance between the transmitter and receiver. 
+    radio.setDataRate(RF24_250KBPS);
     radio.startListening();            //This sets the module as receiver
+    radio.setChannel(76);
+}
+
+void getData()
+{
+    if (radio.available()) {
+        radio.read(&buffer, sizeof(buffer));
+        newData = true;
+    }
+}
+
+void showData()
+{
+    if (newData) {
+        Serial.print("Data received ");
+        String dataString = String(buffer);
+        Serial.println(dataString);
+        newData = false;
+    }
 }

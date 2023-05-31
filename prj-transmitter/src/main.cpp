@@ -11,48 +11,55 @@
 //          Oprettelse af ny transmitter kode, som kan sende w, a, s & d
 //==================================
 
+
 #include <RF24.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <Arduino.h>
 #include <string.h>
+#include <SPI.h>
+#include <printf.h>
+#include "RF24.h"
 
 #include <util/delay.h>
 
-RF24 radio(PB1, PB2);
+#define CE_PIN 7
+#define CSN_PIN 8
+
+RF24 radio(CE_PIN, CSN_PIN);
 
 void initTransmitter();
 void sendString(char key);
 
-const byte pipe[6] = "00001";
+const byte slaveAddress[6] = "00002";
 char buffer;
 
 int main()
 {
     init();
     Serial.begin(9600);
-    SPI.begin();
 
     while(!Serial)
     {}
+
+    printf_begin();
 
     Serial.print(F("Hello from transmitter\n"));
 
     initTransmitter();
 
-    char testString[] = "Hello from transmitter";
+    radio.printPrettyDetails();
 
-    bool x;
+    char testString[] = "Hello from transmitter";
 
     for(;;)
     {
-        x = radio.write(testString, sizeof(testString));
-        if (x)
-            {
-                Serial.print("  Send successful!\n");
-            }
-            _delay_ms(1000);
+        radio.write(&testString, sizeof(testString));
         
+        Serial.println(testString);
+
+        _delay_ms(1000);
+    
         // if (Serial.available() > 0)
         // {
         //     // char key = Serial.read();
@@ -70,14 +77,17 @@ int main()
 
 void initTransmitter()
 {
-    if(!radio.begin())
-    {
-        Serial.print(F("    Radio hardware not responding!\n"));
-        while(1){}
-    }
-    radio.openWritingPipe(pipe);   //Setting the address at which we will receive the data 
-    radio.setPALevel(RF24_PA_MIN);    //You can set this as minimum or maximum depending on the distance between the transmitter and receiver. 
-    radio.stopListening();            //This sets the module as transmitter 
+    // if(!radio.begin())
+    // {
+    //     Serial.print(F("    Radio hardware not responding!\n"));
+    //     while(1){}
+    // }
+    radio.begin();
+    radio.openWritingPipe(slaveAddress);    //Setting the address at which we will receive the data 
+    radio.setPALevel(RF24_PA_MIN);          //You can set this as minimum or maximum depending on the distance between the transmitter and receiver. 
+    radio.setDataRate(RF24_250KBPS);
+    radio.stopListening();                  //This sets the module as transmitter 
+    radio.setChannel(76);
 }
 
 void sendString(char key)
@@ -93,12 +103,16 @@ void sendString(char key)
         buf[0] = prevKey;
     }
     
-    bool x = radio.write(buf, sizeof(buf));
-    _delay_ms(10);
+    bool x = radio.write(&buf, sizeof(buf));
+    _delay_ms(10); // Radio needs ~10 ms for message to be sent properly
 
     if(x) // send the key over radio
     {
         Serial.print("Send successful\n");
+    }
+    else
+    {
+        Serial.print("  Send not successful!\n");
     }
     prevKey = buf[0];              // update the previous key
 }
